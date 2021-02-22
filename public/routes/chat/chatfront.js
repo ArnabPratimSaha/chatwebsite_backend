@@ -4,12 +4,37 @@ const router=express.Router();
 const jwt=require("jsonwebtoken");
 const mongoose =require("mongoose");
 const { eventNames } = require("../../models/userModel");
+const CryptoJS = require("crypto-js");
 
 const userModel=require("../../models/userModel");
 const chatModel=require("../../models/chatModel");
 
 mongoose.set('useFindAndModify', false);
 
+
+const encodeMassage=(massage)=>{
+   return CryptoJS.AES.encrypt(massage, process.env["SECRET"]).toString();
+}
+const decodeMassage=(massage)=>
+{
+    var bytes  = CryptoJS.AES.decrypt(massage, process.env["SECRET"]);
+    return bytes.toString(CryptoJS.enc.Utf8);
+}
+const decodeOBJ=(arr)=>
+{
+    const array=[];
+    arr.forEach(element => {
+        
+        const temp={
+                senderEmail:decodeMassage(element.senderEmail),
+                reciverEmail:decodeMassage(element.reciverEmail),
+                massageBody:decodeMassage(element.massageBody),
+                time:decodeMassage(element.time)
+            }
+        array.push(temp);
+    });
+    return array;
+}
 
 router.get("/chat/frontpage",(req,res)=>{
     const token=req.header("x-auth-token");
@@ -90,16 +115,15 @@ router.post("/chat/sendmassage",(req,res)=>{
                     chatModel.findOneAndUpdate({ _id: newChatID }, {
                         $push: {
                             chatdata: {
-                                senderEmail: senderEmail,
-                                reciverEmail: reciverEmail,
-                                massageBody: req.body.massage,
-                                time: req.body.time
+                                senderEmail: encodeMassage(senderEmail),
+                                reciverEmail: encodeMassage(reciverEmail),
+                                massageBody: encodeMassage(req.body.massage),
+                                time: encodeMassage(req.body.time)
                             }
                         }
                     }, (err, success) => {
                         chatModel.findOne({_id:newChatID},(err,success2)=>{
-                            
-                            res.json({"status":true,"chat":success2.chatdata});
+                            res.json({"status":true,"chat":decodeOBJ(success2.chatdata)});
                         })
                     })
                 })
@@ -109,15 +133,17 @@ router.post("/chat/sendmassage",(req,res)=>{
             chatModel.findOneAndUpdate({ _id: chatID }, {
                 $push: {
                     chatdata: {
-                        senderEmail: senderEmail,
-                        reciverEmail: reciverEmail,
-                        massageBody: req.body.massage,
-                        time: req.body.time
+                        senderEmail: encodeMassage(senderEmail),
+                        reciverEmail: encodeMassage(reciverEmail),
+                        massageBody: encodeMassage(req.body.massage),
+                        time: encodeMassage(req.body.time)
                     }
                 }
             }, (err, success1) => {
                 chatModel.findOne({_id:chatID},(err,success2)=>{
-                    res.json({"status":true,"chat":success2.chatdata});
+                    
+                    console.log();
+                    res.json({"status":true,"chat":decodeOBJ(success2.chatdata)});
                 })
             })
         }
@@ -140,12 +166,12 @@ router.post("/chat/getallmassages",(req,res)=>{
             if(result2.chatdata.length>50)
             {
                 chatModel.findOneAndUpdate({_id:chatID},{$pop:{chatdata:-1}},(err,result3)=>{
-                    res.json({"status":true,"chat":result3.chatdata});
+                    res.json({"status":true,"chat":decodeOBJ(result3.chatdata)});
                 });
             }
             else
             {
-                res.json({"status":true,"chat":result2.chatdata});
+                res.json({"status":true,"chat":decodeOBJ(result2.chatdata)});
 
             }
         })
