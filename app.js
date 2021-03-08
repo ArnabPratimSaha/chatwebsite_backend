@@ -3,6 +3,10 @@ const bodyParser=require("body-parser");
 var jwt = require('jsonwebtoken');
 var cors = require('cors');
 
+const socket=require("socket.io");
+const http=require("http"); 
+
+
 const registerRoute=require("./public/routes/register/register");
 const authRoute1=require("./public/routes/auth/authpage1");
 const loginRoute=require("./public/routes/login/login");
@@ -13,8 +17,10 @@ const friendreqrec=require("./public/routes/friendreq/friendreqrec");
 const chatRoute=require("./public/routes/chat/chatfront");
 
 const app=express();
-app.use(bodyParser.json({extended :false}));
+const server=http.createServer(app);
+const io=socket(server);
 
+app.use(express.json({extended :false}));
 app.use(cors());
   
 app.use("/home",registerRoute);
@@ -27,6 +33,6 @@ app.use("/home",friendreqrec);
 app.use("/home",chatRoute)
 
 
-app.listen(process.env.PORT || 5000,()=>{
+server.listen(process.env.PORT || 5000,()=>{
     console.log("server listening on port 5000");
 });
