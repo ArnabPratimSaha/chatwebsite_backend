@@ -180,4 +180,4 @@ router.post("/chat/getallmassages",(req,res)=>{
 })
 
 
-module.exports=router;
+module.exports={router,findID,decodeOBJ,decodeMassage,encodeMassage};

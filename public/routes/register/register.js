@@ -92,7 +92,7 @@ const manageCode=(tempUser)=>
       from: process.env.EMAIL,
       to: tempUser.email,
       subject: "Welcome To Chatter " + tempUser.userName,
-      text: converToString(tempUser.token.code),
+      text:"Welcome " + tempUser.userName +"\nYour signup code is "+converToString(tempUser.token.code)+". \nPLEASE DON'T SHARE THIS WITH OTHERS\n"+"The code is valid for 10 minutes"
     };
 
     transporter.sendMail(mailOptions, function (error, info) {
