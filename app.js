@@ -69,10 +69,22 @@ io.on("connection", socket => {
                         {
                             const roomInfo=io.sockets.adapter.rooms.get(finalToken);
                             var array=[];
-                            roomInfo.forEach(element => {
-                                array.push(element)
-                            });
-                            io.to(finalToken).emit('chatData', {chat:decodeOBJ(result.chatdata),id:array});
+                            if(roomInfo)
+                            {
+                                roomInfo.forEach(element => {
+                                    array.push(element)
+                                });
+                            }
+                            if(result.chatdata.length>50)
+                            {
+                                chatModel.findOneAndUpdate({_id:chatID},{$pop:{chatdata:-1}},(err,result1)=>{
+                                    io.to(finalToken).emit('chatData', {chat:decodeOBJ(result1.chatdata),id:array});
+                                });
+                            }
+                            else
+                            {
+                                io.to(finalToken).emit('chatData', {chat:decodeOBJ(result.chatdata),id:array});
+                            }
                             callback();
                         }
                     });
@@ -151,9 +163,12 @@ io.on("connection", socket => {
         const finalToken=token[0]+" "+token[1];
         const roomInfo=io.sockets.adapter.rooms.get(finalToken);
         var array = [];
-        roomInfo.forEach((element) => {
-            array.push(element);
-        });
+        if(roomInfo)
+        {
+            roomInfo.forEach((element) => {
+                array.push(element);
+            });
+        }
         io.to(finalToken).emit("exit",{id:array});
         socket.disconnect();
         callback();
