@@ -67,21 +67,12 @@ io.on("connection", socket => {
                         }
                         if(result)
                         {
-                            var array=[];
                             const roomInfo=io.sockets.adapter.rooms.get(finalToken);
+                            var array=[];
                             roomInfo.forEach(element => {
                                 array.push(element)
                             });
-                            if(result.chatdata.length>200)
-                            {
-                                chatModel.findOneAndUpdate({_id:chatID},{$pop:{chatdata:-1}},(err,result1)=>{
-                                    io.to(finalToken).emit('chatData', {chat:decodeOBJ(result1.chatdata),id:array});
-                                });
-                            }
-                            else
-                            {
-                                io.to(finalToken).emit('chatData', {chat:decodeOBJ(result.chatdata),id:array});
-                            }
+                            io.to(finalToken).emit('chatData', {chat:decodeOBJ(result.chatdata),id:array});
                             callback();
                         }
                     });
